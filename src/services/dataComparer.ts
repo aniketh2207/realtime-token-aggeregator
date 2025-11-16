@@ -15,8 +15,8 @@ interface AppToken {
   }
 
 
-  const PRICE_THRESHOLD = 0.001; 
-const VOLUME_THRESHOLD = 100;
+  const PRICE_THRESHOLD = 0.05; //5% price change
+const VOLUME_THRESHOLD = 10000;// 10000 SOL volume threshold change
 
 export async function compareAndUpdateCache(
     newTokenList: AppToken[],
@@ -29,7 +29,7 @@ export async function compareAndUpdateCache(
 
     if (!oldDataJson) {
         // If no old data exists (first run), just save the new data and exit.
-        await redisClient.set(cacheKey, JSON.stringify(newTokenList), 'EX', 30);
+        await redisClient.set(cacheKey, JSON.stringify(newTokenList), 'EX', 90);
         return;
     }
 
@@ -53,9 +53,8 @@ export async function compareAndUpdateCache(
         const oldVolume = parseFloat(oldToken.volume_sol.toString());
 
         if (isNaN(newPrice) || isNaN(oldPrice)) continue;
-
-        const priceDelta = Math.abs(newToken.price_sol - oldToken.price_sol);
-        const volumeDelta = Math.abs(newToken.volume_sol - oldToken.volume_sol);
+        const priceDelta = Math.abs(newPrice - oldPrice);
+        const volumeDelta = Math.abs(newVolume - oldVolume);
 
         if(priceDelta > PRICE_THRESHOLD || volumeDelta > VOLUME_THRESHOLD){
             updates.push({
@@ -68,7 +67,7 @@ export async function compareAndUpdateCache(
     }
   }
 
-  await redisClient.set(cacheKey, JSON.stringify(newTokenList), 'EX', 30);//if not changes we just save the fresh data
+  await redisClient.set(cacheKey, JSON.stringify(newTokenList), 'EX', 90);//if not changes we just save the fresh data
 
   //show changes via websocket
   if (updates.length > 0) {

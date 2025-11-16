@@ -27,7 +27,7 @@ router.get('/tokens', async(req: Request, res: Response) =>{
         }
         let tokens: AppToken[] = JSON.parse(cachedData);
 
-        const sortBy = req.query.sort as keyof AppToken; 
+        const sortBy = (req.query.sort as keyof AppToken) || 'volume_sol'; 
         const sortOrder = req.query.order as string || 'desc';
 
         if (sortBy) {
@@ -44,16 +44,29 @@ router.get('/tokens', async(req: Request, res: Response) =>{
             });
           }
           const limit = parseInt(req.query.limit as string) || 20; 
-          const page = parseInt(req.query.page as string) || 1;
+          const cursor = req.query.cursor as string | undefined;
 
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
+          let startIndex = 0;
 
-        const paginatedTokens = tokens.slice(startIndex, endIndex);
+          if(cursor){
+            const cursorIndex = tokens.findIndex(t => t.token_address === cursor);
+            if (cursorIndex !== -1){
+              startIndex = cursorIndex + 1;
+            }
+          }
+
+          const endIndex = startIndex + limit;
+          const paginatedTokens = tokens.slice(startIndex, endIndex);
+
+        let nextCursor: string | null = null;
+
+        if (paginatedTokens.length > 0 && endIndex < tokens.length) {
+          nextCursor = paginatedTokens[paginatedTokens.length - 1]?.token_address ?? null;
+        }
 
         res.status(200).json({
             totalTokens: tokens.length,
-            page: page,
+            next_cursor:nextCursor,
             limit: limit,
             data: paginatedTokens,
           });

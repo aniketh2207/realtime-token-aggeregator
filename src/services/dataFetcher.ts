@@ -33,6 +33,8 @@ interface AppToken {
   liquidity_sol: number;
   transaction_count: number;
   price_1hr_change: number;
+  price_24hr_change: number; 
+  price_7d_change: number;
   protocol: string;
 }
 
@@ -62,7 +64,10 @@ interface ApiDexPair {
   fdv: number;
   liquidity?: { usd: number }; // Marked as optional
   txns?: { h24: { buys: number; sells: number } }; // Marked as optional
-  priceChange?: { h1: number }; // Marked as optional
+  priceChange?: {
+     h1: number ,
+     h24: number,
+    }; // Marked as optional
   dexId: string;
 }
 
@@ -79,6 +84,10 @@ interface ApiJupiterToken {
     sellVolume: number;
     numBuys: number;
     numSells: number;
+    priceChange: number;
+  };
+  stats7d: {
+    priceChange: number;
   };
   stats1h: {
     priceChange: number;
@@ -160,6 +169,7 @@ export async function fetchAndMergeData(): Promise<AppToken[]> {
     ) {
       const liquidityInUsd = pair.liquidity?.usd ?? 0;
       const priceChange1h = pair.priceChange?.h1 ?? 0;
+      const priceChange24h = pair.priceChange?.h24 ?? 0;
       const txns24h_buys = pair.txns?.h24?.buys ?? 0;
       const txns24h_sells = pair.txns?.h24?.sells ?? 0;
 
@@ -172,6 +182,8 @@ export async function fetchAndMergeData(): Promise<AppToken[]> {
         volume_sol: pair.volume.h24 / SolPriceInUsd,
         liquidity_sol: liquidityInUsd / SolPriceInUsd,
         price_1hr_change: priceChange1h,
+        price_24hr_change: priceChange24h,
+        price_7d_change: 0, //since dexscreener doesnt provide this data we are keeping it default 0
         transaction_count: txns24h_buys + txns24h_sells,
         protocol: pair.dexId,
       };
@@ -186,7 +198,10 @@ export async function fetchAndMergeData(): Promise<AppToken[]> {
       !token.usdPrice ||
       !token.mcap ||
       !token.stats24h?.buyVolume ||
-      !token.stats24h?.sellVolume
+      !token.stats24h?.sellVolume ||
+      !token.stats1h ||
+      !token.stats24h ||
+      !token.stats7d
     ) {
       continue;
     }
@@ -206,6 +221,8 @@ export async function fetchAndMergeData(): Promise<AppToken[]> {
         volume_sol: totalVolume / SolPriceInUsd,
         market_cap_sol: token.mcap / SolPriceInUsd,
         price_1hr_change: token.stats1h.priceChange || 0,
+        price_24hr_change: token.stats24h.priceChange || 0,
+        price_7d_change: token.stats7d.priceChange || 0,
         liquidity_sol: token.liquidity / SolPriceInUsd || 0,
         transaction_count: totalTxns,
         protocol: 'Jupiter',
