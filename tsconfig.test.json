@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest", "node"],
+    "verbatimModuleSyntax": false,
+    "moduleResolution": "node"
+  },
+  "include": ["src/tests/**/*"]
+}
+

@@ -5,18 +5,30 @@ import { TOKEN_CACHE_KEY } from '../services/taskScheduler.js';
 
 const router = Router();
 interface AppToken {
-    token_address: string;
-    token_name: string;
-    token_ticker: string;
-    price_sol: number;
-    market_cap_sol: number;
-    volume_sol: number;
-    liquidity_sol: number;
-    transaction_count: number;
-    price_1hr_change: number;
-    protocol: string;
-  };
-
+  token_address: string;
+  token_name: string;
+  token_ticker: string;
+  price_sol: number;
+  market_cap_sol: number;
+  volume_sol: number;
+  liquidity_sol: number;
+  transaction_count: number;
+  price_1hr_change: number;
+  price_24hr_change: number;
+  price_7d_change: number;
+  protocol: string;
+}
+//list of keys that are valid to be used for sorting the api data
+const VALID_SORT_KEYS: (keyof AppToken)[] = [
+  'price_sol',
+  'market_cap_sol',
+  'volume_sol',
+  'liquidity_sol',
+  'transaction_count',
+  'price_1hr_change',
+  'price_24hr_change',
+  'price_7d_change',
+];
 router.get('/tokens', async(req: Request, res: Response) =>{
     try{
         const cachedData = await redisClient.get(TOKEN_CACHE_KEY);
@@ -27,22 +39,22 @@ router.get('/tokens', async(req: Request, res: Response) =>{
         }
         let tokens: AppToken[] = JSON.parse(cachedData);
 
-        const sortBy = (req.query.sort as keyof AppToken) || 'volume_sol'; 
-        const sortOrder = req.query.order as string || 'desc';
 
-        if (sortBy) {
-            tokens.sort((a, b) => {
-              const aVal = a[sortBy] as number;
-              const bVal = b[sortBy] as number;
-      
-              if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return sortOrder === 'asc' 
-                  ? aVal - bVal 
-                  : bVal - aVal;
-              }
-              return 0; // If data types are wrong, maintain original order
-            });
-          }
+        let sortBy = req.query.sort as keyof AppToken;
+        const sortOrder = (req.query.order as string) || 'desc';
+
+        if (!VALID_SORT_KEYS.includes(sortBy)) {
+          sortBy = 'volume_sol'; // Default sort
+        }
+
+        tokens.sort((a, b) => {
+        const aVal = a[sortBy] as number;
+        const bVal = b[sortBy] as number;
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        return 0;
+      });
           const limit = parseInt(req.query.limit as string) || 20; 
           const cursor = req.query.cursor as string | undefined;
 
