@@ -8,8 +8,7 @@ This is a high-performance backend service built for a company assignment. It ag
 
 ### 🚀 Live Demo Links
 
-* **Public API URL:** `[Link to your deployed service (from Step 6.4)]`
-* **YouTube Demo:** `[Link to your YouTube video (from Step 6.5)]`
+* **YouTube Demo:** `https://youtu.be/2hYkDtT57C8`
 * **Postman Collection:** `https://code-blasters.postman.co/workspace/My-Workspace~8d682d6f-7f65-4cda-802b-9b2a40605895/collection/40622057-37f73e51-4f40-4449-814d-625fef4fb72d?action=share&source=copy-link&creator=40622057`
 * **Postman Link for Websocket** `https://code-blasters.postman.co/workspace/My-Workspace~8d682d6f-7f65-4cda-802b-9b2a40605895/ws-socketio-request/6919b0c3c656927e6266545c`
 
