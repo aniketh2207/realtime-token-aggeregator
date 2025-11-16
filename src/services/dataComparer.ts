@@ -16,7 +16,7 @@ interface AppToken {
 
 
   const PRICE_THRESHOLD = 0.05; //5% price change
-const VOLUME_THRESHOLD = 100;// 10000 SOL volume threshold change
+const VOLUME_THRESHOLD = 10000;// 10000 SOL volume threshold change
 
 export async function compareAndUpdateCache(
     newTokenList: AppToken[],
